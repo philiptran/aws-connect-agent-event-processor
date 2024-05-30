@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  aws-connect-agent-event-processor
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+Parameters:
+  ConnectInstanceArn:
+    Type: String
+  ConnectAgentEventsStreamArn:
+    Type: String
+  NotificationEmailAddr:
+    Type: String
+  NotificationPhoneNumber:
+    Type: String
+
+Resources:
+  ConnectAgentEventsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: connect-agent-events/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Policies:
+        - AWSLambdaKinesisExecutionRole
+        - Statement:
+          - Sid: AgentEventSNSPublish
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Ref AgentStatusSNSTopic
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          AMAZON_CONNECT_INSTANCE_ARN: !Ref ConnectInstanceArn
+          AGENT_STATUS_SNS_TOPIC_ARN: !Ref AgentStatusSNSTopic
+      Events:
+        KinesisEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref ConnectAgentEventsStreamArn
+            StartingPosition: LATEST
+            BatchSize: 1
+            Enabled: true
+            FilterCriteria:
+              Filters:
+                - Pattern: '{ "data": { "EventType": ["STATE_CHANGE"] } }'
+
+  AgentStatusSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      KmsMasterKeyId: "alias/aws/sns"
+      DisplayName: "Agent Status SNS Topic"
+      TopicName: "AgentStatusSNSTopic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmailAddr
+          Protocol: "email"
+        - Endpoint: !Ref NotificationPhoneNumber
+          Protocol: "sms"
+
+Outputs:
+  ConnectAgentEventsFunction:
+    Description: Connect Agent Events Lambda Function ARN
+    Value: !GetAtt ConnectAgentEventsFunction.Arn
+  ConnectAgentEventsFunctionIamRole:
+    Description: Implicit IAM Role created for Connect Agent Events function
+    Value: !GetAtt ConnectAgentEventsFunctionRole.Arn
