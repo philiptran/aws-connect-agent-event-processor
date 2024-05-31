@@ -1,1 +1,0 @@
-sam deploy --parameter-overrides ConnectAgentEventsStreamArn=arn:aws:kinesis:ap-southeast-1:084448423204:stream/connect-agent-events-stream
