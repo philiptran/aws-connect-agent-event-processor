@@ -3,13 +3,19 @@ import base64
 import boto3
 import os
 
-agentStatusTopicArn = os.environ.get('agentStatus_SNS_TOPIC_ARN')
-connectInstanceId = os.environ.get('agentStatus_SNS_TOPIC_ARN').split('/')[1]
+connectInstanceId = os.environ.get('AMAZON_CONNECT_INSTANCE_ARN').split('/')[1]
+agentStatusTopicArn = os.environ.get('AGENT_STATUS_SNS_TOPIC_ARN')
 connectClient = boto3.client('connect')
 snsClient = boto3.client('sns')
 
 def getConnectAgentByUserId(userId):
     try:
+        
+        #r = connectClient.list_users(
+        #    InstanceId=connectInstanceId
+        #)
+        #print(f"Agent list: {r}")
+
         response = connectClient.describe_user(
             InstanceId=connectInstanceId,
             UserId=userId
@@ -20,7 +26,7 @@ def getConnectAgentByUserId(userId):
     
     except Exception as e:
         print(f"An error occurred {e}")
-        raise e
+        return f"Notfound: {userId}"
     
 def lambda_handler(event, context):
 
@@ -36,10 +42,10 @@ def lambda_handler(event, context):
             agentName = getConnectAgentByUserId(agentId)
             agentStatus = agentEvent['CurrentAgentSnapshot']['AgentStatus']['Name']
             if agentStatus != 'Available':
-                print(f"Agent {agentName} changed status to {agentStatus}. Sending SMS notification.")
+                print(f"Agent '{agentName}' changed status to {agentStatus}. Sending SMS notification.")
                 snsResponse = snsClient.publish(
                     TopicArn=agentStatusTopicArn,
-                    Message=f"Agent {agentName} changed status to ${agentStatus}."
+                    Message=f"Agent '{agentName}' changed status to ${agentStatus}."
                 )
                 print(f"SNS response: {snsResponse}")
 

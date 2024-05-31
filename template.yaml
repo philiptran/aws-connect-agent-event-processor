@@ -35,6 +35,16 @@ Resources:
             Action:
               - sns:Publish
             Resource: !Ref AgentStatusSNSTopic
+        - Statement:
+          - Sid: ConnectClient
+            Effect: Allow
+            Action:
+              - connect:DescribeInstance
+              - connect:DescribeUser
+              - connect:ListUsers
+            Resource: 
+              - !Ref ConnectInstanceArn
+              - !Join ["/", [!Ref ConnectInstanceArn, '*'] ]
       Architectures:
         - x86_64
       Environment:
