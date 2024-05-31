@@ -1,6 +1,6 @@
 # aws-connect-agent-event-processor
 
-This demo solution uses a Lambda function to process records in an Amazon Kinesis data stream that has been configured to receive the Agent Events streaming from your Amazon Connect instance. The Kinesis event source mapping for the Lambda function uses `FilterCriteria` to filter agent events of `STATE_CHANGE` and sends out SMS/Email notifications if the agent status changed to any that is not equal to `Available`.
+This demo solution uses a Lambda function to process records in an Amazon Kinesis data stream that has been configured to receive the Agent Events streaming from your Amazon Connect instance. The Kinesis event source mapping for the Lambda function uses `FilterCriteria` to filter agent events of `STATE_CHANGE` and sends out SMS/Email notifications if the agent status changed to any state that is not equal to `Available`.
 
 ## Deploy the sample application
 
