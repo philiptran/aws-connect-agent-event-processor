@@ -34,7 +34,7 @@ Resources:
             Effect: Allow
             Action:
               - sns:Publish
-            Resource: !Ref AgentStatusSNSTopic
+            Resource: !Ref ConnectAgentStatusSNSTopic
         - Statement:
           - Sid: ConnectClient
             Effect: Allow
@@ -50,7 +50,7 @@ Resources:
       Environment:
         Variables:
           AMAZON_CONNECT_INSTANCE_ARN: !Ref ConnectInstanceArn
-          AGENT_STATUS_SNS_TOPIC_ARN: !Ref AgentStatusSNSTopic
+          AGENT_STATUS_SNS_TOPIC_ARN: !Ref ConnectAgentStatusSNSTopic
       Events:
         KinesisEvent:
           Type: Kinesis
@@ -63,12 +63,12 @@ Resources:
               Filters:
                 - Pattern: '{ "data": { "EventType": ["STATE_CHANGE"] } }'
 
-  AgentStatusSNSTopic:
+  ConnectAgentStatusSNSTopic:
     Type: "AWS::SNS::Topic"
     Properties:
       KmsMasterKeyId: "alias/aws/sns"
-      DisplayName: "Agent Status SNS Topic"
-      TopicName: "AgentStatusSNSTopic"
+      DisplayName: "Connect Agent Status SNS Topic"
+      TopicName: "ConnectAgentStatusSNSTopic"
       Subscription:
         - Endpoint: !Ref NotificationEmailAddr
           Protocol: "email"
